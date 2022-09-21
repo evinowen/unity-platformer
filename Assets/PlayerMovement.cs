@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -23,6 +24,9 @@ public class PlayerMovement : MonoBehaviour
     {
         this.MoveInput();
 
+        if (this.Body.position.y < -20) {
+            SceneManager.LoadScene("GameOverScene");
+        }
     }
 
     void MoveInput ()
