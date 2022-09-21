@@ -1,47 +1,64 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerMovement : MonoBehaviour
 {
-    public float moveSpeed;
+    public float WalkForce;
+    public float WalkVelocity;
+    public float JumpForce;
 
-    private Rigidbody2D rb;
-    private bool facingRight = true;
-    private float moveDirection;
+    private Rigidbody2D Body;
+    private PlayerInput Input;
+    private bool FacingRight = true;
 
     void Start()
     {
-        this.rb = GetComponent<Rigidbody2D>();
+        this.Body = GetComponent<Rigidbody2D>();
+        this.Input = GetComponent<PlayerInput>();
     }
 
-    void Update()
+    void Update ()
     {
-        this.moveDirection = Input.GetAxis("Horizontal");
+        this.MoveInput();
 
-        if (this.moveDirection > 0 && !facingRight)
+    }
+
+    void MoveInput ()
+    {
+        Vector2 Move = this.Input.actions["Move"].ReadValue<Vector2>();
+
+        float MoveHoriontal = Move.x;
+
+        if (MoveHoriontal > 0 && !this.FacingRight)
         {
             this.Flip();
         }
-        else if (moveDirection < 0 && facingRight)
+        else if (MoveHoriontal < 0 && this.FacingRight)
         {
             this.Flip();
         }
 
-        this.rb.velocity = new Vector2(this.moveDirection * this.moveSpeed, this.rb.velocity.y);
+        float WalkMagnitude = this.Body.velocity.magnitude;
+        float WalkPower = WalkMagnitude > 0.01f ? (WalkVelocity - WalkMagnitude) / WalkVelocity : 1.0f;
 
-        if (Input.GetAxis("Jump") > 0)
-        {
-            if (this.rb.velocity.y > -0.01 && this.rb.velocity.y < 0.01)
-            {
-                this.rb.velocity = new Vector2(this.rb.velocity.x, 8);
+        if (WalkPower > 0) {
+            this.Body.AddForce(Vector2.right * MoveHoriontal * WalkForce * WalkPower);
+        }
+
+        float MoveVertical = Move.y;
+
+        if (MoveVertical > 0) {
+            if (Mathf.Abs(this.Body.velocity.y) <= 0.0001) {
+                this.Body.AddForce(Vector2.up * JumpForce, ForceMode2D.Impulse);
             }
         }
     }
 
     void Flip()
     {
-        this.facingRight = !this.facingRight;
+        this.FacingRight = !this.FacingRight;
         transform.Rotate(0f, 180f, 0f);
     }
 }
